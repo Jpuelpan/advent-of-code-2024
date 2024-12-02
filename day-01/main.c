@@ -2,13 +2,58 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct LocationsList {
-  int left[1000];
-  int right[1000];
-  int cur;
-};
+#define MAX_SIZE 2000
+
+typedef struct {
+  int left[MAX_SIZE];
+  int right[MAX_SIZE];
+  int size;
+} LocationsList;
+
+typedef struct {
+  int key;
+  int value;
+} LocationFreq;
 
 int ASC(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+
+void calculate_distance(LocationsList *locations) {
+  int total_distance = 0;
+  for (size_t i = 0; i < locations->size; i++) {
+    int distance = abs(locations->left[i] - locations->right[i]);
+    /* printf("%d - %d: %d\n", locations->left[i], locations->right[i],
+     * distance); */
+    total_distance += distance;
+  }
+
+  printf("Total distance is: %d\n", total_distance);
+}
+
+void calculate_similarity_score(LocationsList *locations) {
+  LocationFreq freq[locations->size];
+  for (int i = 0; i < locations->size; i++) {
+    freq[i].key = locations->left[i];
+    freq[i].value = 0;
+  }
+
+  for (int i = 0; i < locations->size; i++) {
+    for (int j = 0; j < locations->size; j++) {
+      if (locations->right[i] == freq[j].key) {
+        freq[j].value++;
+        break;
+      }
+    }
+  }
+
+  int similarity_score = 0;
+  for (int i = 0; i < locations->size; i++) {
+    int score = freq[i].key * freq[i].value;
+    /* printf("freq: %d: %d -> %d\n", freq[i].key, freq[i].value, score); */
+    similarity_score += score;
+  }
+
+  printf("Similarity score: %d\n", similarity_score);
+}
 
 int main(int argc, char *argv[]) {
   printf("Advent of code 2024 - Day 1\n");
@@ -27,15 +72,15 @@ int main(int argc, char *argv[]) {
   char row[100];
   char *token;
 
-  struct LocationsList locations;
-  locations.cur = -1;
+  LocationsList locations;
+  locations.size = -1;
 
   while (feof(fp) == 0) {
     fgets(row, sizeof(row), fp);
     token = strtok(row, ",");
 
     int i = 0;
-    locations.cur++;
+    locations.size++;
     while (token != NULL) {
       int num;
       if (sscanf(token, "%d", &num) != 1) {
@@ -44,9 +89,9 @@ int main(int argc, char *argv[]) {
       }
 
       if (i == 0) {
-        locations.left[locations.cur] = num;
+        locations.left[locations.size] = num;
       } else {
-        locations.right[locations.cur] = num;
+        locations.right[locations.size] = num;
       }
 
       i++;
@@ -56,17 +101,11 @@ int main(int argc, char *argv[]) {
     row[0] = '\0';
   };
 
-  qsort(&locations.left, locations.cur, sizeof(int), ASC);
-  qsort(&locations.right, locations.cur, sizeof(int), ASC);
+  qsort(&locations.left, locations.size, sizeof(int), ASC);
+  qsort(&locations.right, locations.size, sizeof(int), ASC);
 
-  int total_distance = 0;
-  for (size_t i = 0; i < locations.cur; i++) {
-    int distance = abs(locations.left[i] - locations.right[i]);
-    printf("%d - %d: %d\n", locations.left[i], locations.right[i], distance);
-    total_distance += distance;
-  }
-
-  printf("Total distance is: %d\n", total_distance);
+  calculate_distance(&locations);
+  calculate_similarity_score(&locations);
 
   fclose(fp);
   return 0;
