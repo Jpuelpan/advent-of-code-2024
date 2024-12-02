@@ -8,8 +8,7 @@ enum Direction {
 }
 
 fn main() {
-    // let file_path = "./input.txt";
-    let file_path = "./input2.txt";
+    let file_path = "./input.txt";
 
     let reports: Vec<String> = fs::read_to_string(file_path)
         .unwrap()
@@ -19,12 +18,12 @@ fn main() {
 
     let mut safe_reports = 0;
     for report in reports {
-        println!("Report: {}", report);
         let levels: Vec<i32> = report
             .split_whitespace()
             .map(|x| x.parse::<i32>().unwrap())
             .collect();
 
+        println!("{} | {}", report, levels.len());
         let chunks = levels.windows(2);
 
         let mut is_safe = false;
@@ -33,6 +32,7 @@ fn main() {
         for item in chunks {
             let left = item[0];
             let right = item[1];
+            let diff = (left - right).abs();
 
             let current_direction: Direction = if left > right {
                 Direction::Decreasing
@@ -43,24 +43,19 @@ fn main() {
             };
 
             print!(
-                "{:?} P: {:?} - C: {:?}",
-                item, previous_direction, current_direction
+                "{:?} PRE: {:?} - CUR: {:?} - DIFF: {:?}",
+                item, previous_direction, current_direction, diff
             );
 
             is_safe = match previous_direction {
-                Some(prev) => {
-                    let diff = (left - right).abs();
-                    print!(" - DIFF {}", diff);
-
-                    prev == current_direction && diff != 0 && diff > 0 && diff <= 3
-                }
-                None => true,
+                Some(prev) => prev == current_direction && diff != 0 && diff > 0 && diff <= 3,
+                None => diff != 0 && diff > 0 && diff <= 3,
             };
 
             println!("");
 
             if !is_safe {
-                continue;
+                break;
             }
 
             previous_direction = Some(current_direction);
