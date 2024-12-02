@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 struct LocationsList {
@@ -7,8 +8,10 @@ struct LocationsList {
   int cur;
 };
 
+int ASC(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+
 int main(int argc, char *argv[]) {
-  printf("Running list distance calculator\n");
+  printf("Advent of code 2024 - Day 1\n");
 
   FILE *fp;
   char ch;
@@ -53,9 +56,17 @@ int main(int argc, char *argv[]) {
     row[0] = '\0';
   };
 
+  qsort(&locations.left, locations.cur, sizeof(int), ASC);
+  qsort(&locations.right, locations.cur, sizeof(int), ASC);
+
+  int total_distance = 0;
   for (size_t i = 0; i < locations.cur; i++) {
-    printf("%d %d\n", locations.left[i], locations.right[i]);
+    int distance = abs(locations.left[i] - locations.right[i]);
+    printf("%d - %d: %d\n", locations.left[i], locations.right[i], distance);
+    total_distance += distance;
   }
+
+  printf("Total distance is: %d\n", total_distance);
 
   fclose(fp);
   return 0;
