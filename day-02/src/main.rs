@@ -7,6 +7,69 @@ enum Direction {
     NoChange,
 }
 
+fn is_report_safe(levels: Vec<i32>) -> bool {
+    let mut is_safe = false;
+
+    let chunks = levels.windows(2);
+    let mut previous_direction: Option<Direction> = None;
+
+    for item in chunks {
+        let left = item[0];
+        let right = item[1];
+        let diff = (left - right).abs();
+
+        let current_direction: Direction = if left > right {
+            Direction::Decreasing
+        } else if left < right {
+            Direction::Increasing
+        } else {
+            Direction::NoChange
+        };
+
+        // print!(
+        //     "{:?} PRE: {:?} - CUR: {:?} - DIFF: {:?}",
+        //     item, previous_direction, current_direction, diff
+        // );
+
+        is_safe = match previous_direction {
+            Some(prev) => prev == current_direction && diff != 0 && diff > 0 && diff <= 3,
+            None => diff != 0 && diff > 0 && diff <= 3,
+        };
+
+        // println!("");
+        if !is_safe {
+            break;
+        }
+
+        previous_direction = Some(current_direction);
+    }
+
+    return is_safe;
+}
+
+fn report_dampener(levels: Vec<i32>) -> bool {
+    // println!("Dampening report {:?} ({})", levels, levels.len());
+
+    let mut is_safe = false;
+    for i in 0..levels.len() {
+        let levels_filtered = levels
+            .iter()
+            .enumerate()
+            .filter(|&(x, _)| i != x)
+            .map(|(_, x)| *x);
+
+        let items: Vec<i32> = levels_filtered.collect();
+        is_safe = is_report_safe(items.clone());
+        // println!("items: {:?}, idx: {}, safe: {}", items, i, is_safe);
+
+        if is_safe {
+            break;
+        }
+    }
+
+    return is_safe;
+}
+
 fn main() {
     let file_path = "./input.txt";
 
@@ -23,49 +86,17 @@ fn main() {
             .map(|x| x.parse::<i32>().unwrap())
             .collect();
 
-        println!("{} | {}", report, levels.len());
-        let chunks = levels.windows(2);
+        let mut is_safe = is_report_safe(levels.clone());
 
-        let mut is_safe = false;
-        let mut previous_direction: Option<Direction> = None;
-
-        for item in chunks {
-            let left = item[0];
-            let right = item[1];
-            let diff = (left - right).abs();
-
-            let current_direction: Direction = if left > right {
-                Direction::Decreasing
-            } else if left < right {
-                Direction::Increasing
-            } else {
-                Direction::NoChange
-            };
-
-            print!(
-                "{:?} PRE: {:?} - CUR: {:?} - DIFF: {:?}",
-                item, previous_direction, current_direction, diff
-            );
-
-            is_safe = match previous_direction {
-                Some(prev) => prev == current_direction && diff != 0 && diff > 0 && diff <= 3,
-                None => diff != 0 && diff > 0 && diff <= 3,
-            };
-
-            println!("");
-
-            if !is_safe {
-                break;
-            }
-
-            previous_direction = Some(current_direction);
+        if !is_safe {
+            is_safe = report_dampener(levels.clone());
         }
 
         if is_safe {
             safe_reports += 1;
         }
 
-        println!("IS SAFE: {}\n", is_safe);
+        println!("{:?} - {}", levels, is_safe);
     }
 
     println!("Total safe reports: {}", safe_reports);
