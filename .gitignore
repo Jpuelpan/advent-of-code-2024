@@ -1,3 +1,5 @@
 day-01/main
 day-02/target/
 day-02/input2.txt
+*/input*.txt
+*/node_modules/
